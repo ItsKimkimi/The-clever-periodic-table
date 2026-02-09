@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>جدول تناوبی هوشمند - شبیه‌ساز واکنش شیمیایی</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>جدول تناوبی هوشمند</h1>
+            <p class="subtitle">پیش‌بینی واکنش‌های شیمیایی بین ۴۰ عنصر فعال با نمایش نمودار آنتالپی</p>
+            <div class="instructions">
+                <p><i class="fas fa-mouse-pointer"></i> <strong>روش استفاده:</strong> روی یک عنصر فعال (رنگ کامل) کلیک کنید تا انتخاب شود. عناصری که می‌توانند با آن واکنش دهند روشن می‌مانند. روی عنصر دوم کلیک کنید تا پیش‌بینی واکنش بین آنها را ببینید.</p>
+                <p style="margin-top: 10px; color: #a0c8ff; font-size: 0.9rem;">
+                    <i class="fas fa-info-circle"></i> فقط ۴۰ عنصر فعال هستند. عناصر غیرفعال (کمرنگ) واکنشی نمی‌دهند.
+                    دما: ۰-۱۰۰۰ درجه سانتی‌گراد | فشار: 1 atm | بدون کاتالیزور
+                </p>
+            </div>
+        </header>
+
+        <div class="periodic-table-container">
+            <div class="periodic-table" id="periodic-table">
+                <!-- گروه‌ها و عناصر توسط جاوااسکریپت تولید می‌شوند -->
+            </div>
+        </div>
+
+        <div class="f-block-container">
+            <div class="f-block">
+                <div class="f-block-title">لانتانیدها</div>
+                <div class="f-block-elements" id="lanthanides">
+                    <!-- لانتانیدها توسط جاوااسکریپت تولید می‌شوند -->
+                </div>
+                <div class="f-block-separator"></div>
+                <div class="f-block-title actinide-title">آکتینیدها</div>
+                <div class="f-block-elements" id="actinides">
+                    <!-- آکتینیدها توسط جاوااسکریپت تولید می‌شوند -->
+                </div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #4facfe;"></div>
+                <span>فلزات قلیایی</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #00f2fe;"></div>
+                <span>فلزات قلیایی خاکی</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ff6b6b;"></div>
+                <span>فلزات واسطه</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #4ecdc4;"></div>
+                <span>فلزات پس از واسطه</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ffe66d;"></div>
+                <span>شبه فلزات</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #9d65c9;"></div>
+                <span>نافلزات</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #a0c8ff;"></div>
+                <span>گازهای نجیب</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ff9a76;"></div>
+                <span>لانتانیدها/آکتینیدها</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #666; opacity: 0.3;"></div>
+                <span>عناصر غیرفعال</span>
+            </div>
+        </div>
+
+        <div class="selection-info">
+            <div class="selected-element" id="selected-element-a">
+                <div class="element-symbol" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">?</div>
+                <div class="element-details">
+                    <h3>عنصر اول</h3>
+                    <p>برای انتخاب کلیک کنید</p>
+                </div>
+            </div>
+            <div class="selected-element" id="selected-element-b">
+                <div class="element-symbol" style="background: linear-gradient(135deg, #ff6b6b, #ff8e8e);">?</div>
+                <div class="element-details">
+                    <h3>عنصر دوم</h3>
+                    <p>روی عنصر دیگر کلیک کنید</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش جدید: کنترل دما -->
+        <div class="temperature-control-panel" id="temperature-control-panel" style="display: none;">
+            <div class="temp-slider-container">
+                <label for="temperatureSlider">
+                    <i class="fas fa-thermometer-half"></i> دمای واکنش:
+                    <span id="temperatureValue">0</span>°C
+                </label>
+                <input type="range" id="temperatureSlider" min="0" max="1000" value="0" class="slider">
+                <div class="slider-labels">
+                    <span>0°C</span>
+                    <span>500°C</span>
+                    <span>1000°C</span>
+                </div>
+            </div>
+            
+            <!-- نوار اطلاعات واکنش -->
+            <div class="reaction-info-bar">
+                <div class="info-item">
+                    <span class="info-label">محدوده دمایی:</span>
+                    <span class="info-value">0-1000°C</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">سرعت واکنش:</span>
+                    <span class="info-value" id="reactionSpeedValue">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">دمای فعال‌سازی:</span>
+                    <span class="info-value" id="activationTempValue">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">ΔH:</span>
+                    <span class="info-value" id="enthalpyValue">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">وضعیت واکنش:</span>
+                    <span class="info-value" id="reactionStatus">آغاز نشده</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش جدید: نمودار آنتالپی -->
+        <div class="enthalpy-section" id="enthalpy-section" style="display: none;">
+            <div class="chart-container">
+                <div class="chart-wrapper">
+                    <canvas id="enthalpyChart"></canvas>
+                    <div id="reactionBall" class="reaction-ball"></div>
+                </div>
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <div class="color-box" style="background-color: #FF6B6B;"></div>
+                        <span>منحنی انرژی</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="color-box" style="background-color: #4ECDC4;"></div>
+                        <span>انرژی اولیه</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="color-box" style="background-color: #45B7D1;"></div>
+                        <span>انرژی نهایی</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- بخش جدید: اطلاعات ترکیب -->
+        <div class="compound-details-section" id="compound-details-section" style="display: none;">
+            <div class="compound-header">
+                <h3><i class="fas fa-info-circle"></i> اطلاعات ترکیب شیمیایی</h3>
+                <div class="compound-main-info">
+                    <div class="compound-formula-display" id="compoundFormulaDisplay">-</div>
+                    <div class="compound-name-display" id="compoundNameDisplay">-</div>
+                </div>
+            </div>
+            
+            <div class="compound-details-container">
+                <div class="molecular-structure-side">
+                    <div class="molecular-structure">
+                        <h4><i class="fas fa-shapes"></i> شکل مولکولی/یونی</h4>
+                        <div class="shape-display">
+                            <pre id="geometryASCII">شکل نمایش داده می‌شود</pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="compound-info-side">
+                    <div class="details-grid-compact">
+                        <div class="detail-item-compact">
+                            <div class="detail-label-compact">نوع پیوند:</div>
+                            <div class="detail-value-compact" id="bondTypeDisplay">-</div>
+                        </div>
+                        <div class="detail-item-compact">
+                            <div class="detail-label-compact">نوع ترکیب:</div>
+                            <div class="detail-value-compact" id="compoundTypeDisplay">-</div>
+                        </div>
+                        <div class="detail-item-compact">
+                            <div class="detail-label-compact">فرمول شیمیایی:</div>
+                            <div class="detail-value-compact" id="compoundFormula">-</div>
+                        </div>
+                        <div class="detail-item-compact">
+                            <div class="detail-label-compact">شکل هندسی:</div>
+                            <div class="detail-value-compact" id="geometryType">-</div>
+                        </div>
+                        <div class="detail-item-compact">
+                            <div class="detail-label-compact">حالت فیزیکی:</div>
+                            <div class="detail-value-compact" id="physicalState">-</div>
+                        </div>
+                        <div class="detail-item-compact">
+                            <div class="detail-label-compact">قطبیت:</div>
+                            <div class="detail-value-compact" id="polarityDisplay">-</div>
+                        </div>
+                        <div class="detail-item-compact">
+                            <div class="detail-label-compact">نقطه ذوب:</div>
+                            <div class="detail-value-compact" id="meltingPointDisplay">-</div>
+                        </div>
+                        <div class="detail-item-compact">
+                            <div class="detail-label-compact">کاربردها:</div>
+                            <div class="detail-value-compact" id="compoundUses">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="reset-btn" id="reset-btn">
+                <i class="fas fa-redo"></i> بازنشانی انتخاب
+            </button>
+            <button class="simulate-btn" id="simulate-btn" style="display: none;">
+                <i class="fas fa-play"></i> شروع شبیه‌سازی
+            </button>
+        </div>
+
+        <div class="footer">
+            <p>جدول تناوبی هوشمند | شبیه‌ساز واکنش شیمیایی با نمودار آنتالپی | بر اساس اصول شیمی فیزیک</p>
+            <p>فقط ۴۰ عنصر فعال | دمای بررسی: ۰-۱۰۰۰ درجه سانتی‌گراد | فشار 1 atm | بدون کاتالیزور</p>
+        </div>
+    </div>
+
+    <script src="elements.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
